@@ -9,4 +9,6 @@ The file "onsense.py" contains the application script.  The "onsense" is a simpl
 
 More words will follow imminently, and probably more code.  I'm trying to get my head around QT in order to give this a GUI and more features.  A database is likely to put in an appearance in the near future too.
 
+Oh yeah.  I almost forgot.  There's a hardcoded blacklist in "onsense.py".  You either want to delete it or modify, or both.
+
 
