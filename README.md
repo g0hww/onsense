@@ -9,6 +9,13 @@ The file "onsense.py" contains the application script.  The "onsense" file is a 
 
 More words will follow imminently, and probably more code.  I'm trying to get my head around QT in order to give this a GUI and more features.  A database is likely to put in an appearance in the near future too.
 
-Oh yeah.  I almost forgot.  There's a hardcoded blacklist in "onsense.py".  You either want to delete it or modify, or both.  Oh, and it occasionally stops talking to my radio via hamlib.  I keep grig running at the same time so I don't have to stare at the receiver to figure out what is going on. For this reason, I use rigctld to control the conventional receiver.
+Oh yeah.  I almost forgot.  There's a hardcoded blacklist in "onsense.py".  You either want to delete it or modify, or both.  
+
+Bugs
+====
+
+It occasionally stops talking to my radio via hamlib, I need to do more work on that.  I keep grig running at the same time so I don't have to stare at the receiver to figure out what is going on. For this reason, I use rigctld to control the conventional receiver.
+
+
 
 
