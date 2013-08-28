@@ -42,7 +42,6 @@ class sense_report:
 		if(fields[2] != 'center_freq'):
 			print "\r\n*** BAD REPORT " #+ report
 			self.ok = False
-			#raise(Exception('Bad Report: '+report))
 		else:
 			self.ok = True		
 			self.date = fields[0]
@@ -187,7 +186,7 @@ class sense_rx:
 				if index == 0:
 					report = sense_report(sensor.before)
 					if((report.ok == True) and (self.squelcher.process(report))):
-						if(report.power >= strongest):
+						if((last == report.freq)and((report.power+9.0) > strongest)) or (report.power > strongest):
 							if(self.filter.process(report)):
 									fadeout_count = 0							
 									if(self.aux_rx != None):
@@ -201,12 +200,12 @@ class sense_rx:
 										if(last == report.freq):
 											notification += "\tMONITORING"
 											text += "\tMONITORING"
-											strongest = report.power + 3.0
+											strongest = report.power + 9.0
 											sys.stdout.write('+')
 										else:
 											notification += "\tDETECT"
 											text += "\tDETECT"
-											strongest = report.power + 20.0											
+											strongest = report.power + 3.0											
 										last = report.freq
 										notification += report.comments
 										notify.update("OnSense", notification)
@@ -217,16 +216,16 @@ class sense_rx:
 						else:
 							fadeout_count += 1
 							if((strongest>self.squelch) and (fadeout_count%10)==0) and (last != report.freq):
-								strongest -= 3.0
+								strongest -= 1.0
 								sys.stdout.write('-')
-							if(fadeout_count > 100):
+							if(fadeout_count > 50):
 								fadeout_count = 0
 								sys.stdout.write('0')
 								strongest = self.squelch													
 					else:
 						if(report.ok == True):
 							sys.stdout.write("c")
-							strongest -= 0.2
+							strongest -= 1.0
 					if(strongest <= self.squelch):
 						sys.stdout.write('=')
 					sys.stdout.flush()
@@ -238,7 +237,7 @@ class sense_rx:
 					print sensor.before
 					raise(Exception("Sensor died!"))
 				elif index == 3:
-					if(timeout_count >= 2):
+					if(timeout_count >= 1):
 						raise Exception("Timeout reties exceeded!")
 					else:
 						timeout_count += 1
@@ -248,12 +247,12 @@ class sense_rx:
 					sys.stdout.flush()
 			except Exception as e:
 				timeout_count = 0
-				print type(e)     # the exception instance
-				print "\r***" + str(e.args)      # arguments stored in .args
+				print type(e)
+				print "\r***" + str(e.args)
 				sensor.kill(9)
-				time.sleep(1.0)				
+				time.sleep(1.3)				
 				sensor.close()
-				time.sleep(1.0)
+				time.sleep(1.3)
 				print "*** Respawning"
 				sensor = self.respawn()
 				sensor.timeout = 3.0
@@ -265,13 +264,14 @@ class sense_rx:
 class sense_filter:
 	def __init__(self):
 		self.blacklist = []
-		#'''
+		'''
 		self.blacklist += [120000000.0]
 		self.blacklist += [126600000.0]
 		self.blacklist += [131525000.0]
 		self.blacklist += [131725000.0]
 		self.blacklist += [131825000.0]
-		self.blacklist += [133950000.0]		
+		self.blacklist += [133950000.0]
+		self.blacklist += [135375000.0]
 		self.blacklist += [136500000.0]
 		self.blacklist += [137500000.0]		
 		self.blacklist += [137800000.0]	
@@ -283,7 +283,10 @@ class sense_filter:
 		
 		self.blacklist += [230000000.0]
 		self.blacklist += [240000000.0]
+		self.blacklist += [249950000.0]		
 		self.blacklist += [250000000.0]
+		self.blacklist += [250025000.0]
+		self.blacklist += [250050000.0]
 		self.blacklist += [252000000.0]		
 		self.blacklist += [260000000.0]		
 		self.blacklist += [280000000.0]
@@ -293,7 +296,8 @@ class sense_filter:
 		self.blacklist += [282000000.0]		
 		self.blacklist += [288000000.0]		
 		self.blacklist += [288025000.0]
-		self.blacklist += [294000000.0]		
+		self.blacklist += [294000000.0]
+		self.blacklist += [295100000.0]				
 
 		self.blacklist += [300000000.0]														
 		self.blacklist += [312000000.0]		
@@ -310,7 +314,7 @@ class sense_filter:
 		self.blacklist += [379875000.0]
 		self.blacklist += [392850000.0]
 		self.blacklist += [392875000.0]
-		#'''
+		'''
 		
 	def add(self, freq):
 		self.blacklist += freq
@@ -335,26 +339,12 @@ class slave_rx:
 			self.cmd +=" -s "+str(baud)
 		print self.cmd
 		self.rigctl = pexpect.spawn(self.cmd)
-		time.sleep(0.1)
 		
 	def tune(self, freq):
 		cmd = "F " + str(int(freq))+"\r"
-		#print "*** TUNING CMD: " + cmd
 		self.rigctl.sendline(cmd)
-		self.rigctl.timeout = 0.06
-		index = self.rigctl.expect(["Rig command: ", pexpect.EOF,  pexpect.TIMEOUT])
-		if(index == 0):
-			# good
-			time.sleep(0.02)
-		else:
-			# respawn the rig control process
-			self.rigctl.close()
-			time.sleep(0.05)
-			sys.stdout.write("\r*** Comms fail with Hamlib rig! Restarting rig control process.")
-			sys.stdout.write(self.cmd)
-			sys.stdout.flush()			
-			self.rigctl = pexpect.spawn(self.cmd)
-			
+		self.rigctl.close()
+		self.rigctl = pexpect.spawn(self.cmd)		
 		
 
 if __name__ == '__main__':

@@ -21,10 +21,16 @@
 
 if [ "$1" == "milair"  ]
 then
-	./onsense.py -m 2 -d localhost:4534  -o 19200 -a hackrf --real-time -s 20000000 -g 50 --tune-delay=0.035 --dwell-delay=0.04 -q 8.5 -c 30 230e6 380e6
+	./onsense.py -m 2 -d localhost:4534 -o 19200 \
+				 -a hackrf --real-time -s 20000000 -g 50 \
+				 --tune-delay=0.04 --dwell-delay=0.04 \
+				 -b 25e3 -q 9.5 -c 28 230e6 380e6
 elif [ "$1" == "civair" ]
 then 
-	./onsense.py -m 2 -d localhost:4534  -o 19200 -a hackrf --real-time -s 20000000 -g 50 --tune-delay=0.035 --dwell-delay=0.04 -q 14 -c 23 119e6 136.2e6
+	./onsense.py -m 2 -d localhost:4534  -o 19200 \
+				 -a hackrf --real-time -s 20000000 -g 50 \
+				 --tune-delay=0.04 --dwell-delay=0.04 \
+				 -b 25e3 -q 10 -c 27 119e6 136.2e6
 else
 	echo "Fail!"
 fi
