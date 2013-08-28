@@ -141,7 +141,7 @@ class sense_rx:
 			print "*** provide reports and notifications of activity."
 			
             
-		self.util = './osmocom_spectrum_sense'
+		self.util = 'osmocom_spectrum_sense'
 		self.device = options.args
 		self.srate = options.samp_rate
 		self.gain = options.gain
