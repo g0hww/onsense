@@ -178,7 +178,7 @@ class sense_rx:
 		fadeout_count = 0
 		if notify2.init("OnSense"):
 			notify = notify2.Notification("OnSense")
-			notify.set_timeout(30)
+			notify.set_timeout(10)
 		last = 0.0	
 		while(True):
 			try:
