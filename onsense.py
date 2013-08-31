@@ -42,6 +42,7 @@ class sense_report:
 		if(fields[2] != 'center_freq'):
 			print "\r\n*** BAD REPORT " #+ report
 			self.ok = False
+			raise(Exception("Bad Report!"))
 		else:
 			self.ok = True		
 			self.date = fields[0]
@@ -64,7 +65,7 @@ class sense_report:
 		#output +=' '+str(self.dwell)
 		output +='\t'+"{0:.3f}".format((self.freq)/(1e6))+' Mhz'
 		output += '\t+'+str("{0:.2f}".format(self.power))+' dB'
-		#output +=' '+str(self.noise)
+		output +='\t'+str("{0:.2f}".format(self.noise))+' dB'
 		output +=' ' + self.comments
 		return '\r' + output
 
@@ -143,6 +144,19 @@ class sense_rx:
             
 		self.util = 'osmocom_spectrum_sense'
 		self.device = options.args
+		
+		# some device specific tweaks
+		if(-1 != self.device.find("hackrf")):
+			# device is hackrf, expect no timeouts
+			# preferred for quick crash detection and recovery
+			self.sensor_report_timeout_limit = 1
+			# set the initial timeout for the spectrum sensing utility to be ready
+			self.sensor_timeout = 3.0 # 3 secs should be ok for the hackrf
+		elif(-1 != self.device.find("uhd")):
+			self.sensor_report_timeout_limit = 60 # if nothing happened for 60 secs, assume badness
+			# set the initial timeout for the spectrum sensing utility to be ready
+			self.sensor_timeout = 30.0 # 30 secs should be ok for the uhd firmware to load			
+		
 		self.srate = options.samp_rate
 		self.gain = options.gain
 		self.low_edge =  args[0]
@@ -169,11 +183,10 @@ class sense_rx:
 	def run(self):
 		print self.cmd
 		sensor = pexpect.spawn(self.cmd)
-		sensor.timeout = 3.0
 		sensor.expect(["gain = ", pexpect.EOF,  pexpect.TIMEOUT])
 		sensor.expect(["\r\n",pexpect.EOF, pexpect.TIMEOUT])
 		strongest = self.squelch
-		sensor.timeout = 1.0
+		sensor.timeout = self.sensor_timeout
 		timeout_count = 0
 		fadeout_count = 0
 		if notify2.init("OnSense"):
@@ -184,7 +197,9 @@ class sense_rx:
 			try:
 				index = sensor.expect(["\r\n", "OO", pexpect.EOF,  pexpect.TIMEOUT])
 				if index == 0:
+					timeout_count = 0
 					report = sense_report(sensor.before)
+					#print "***" + sensor.before					
 					if((report.ok == True) and (self.squelcher.process(report))):
 						if((last == report.freq)and((report.power+9.0) > strongest)) or (report.power > strongest):
 							if(self.filter.process(report)):
@@ -237,12 +252,11 @@ class sense_rx:
 					print sensor.before
 					raise(Exception("Sensor died!"))
 				elif index == 3:
-					if(timeout_count >= 1):
-						raise Exception("Timeout reties exceeded!")
+					if(timeout_count >= self.sensor_report_timeout_limit):
+						raise Exception("Report timeout limit reached!")
 					else:
 						timeout_count += 1
-					strongest = self.squelch
-					fadeout_count = 0
+					strongest -= 3.0
 					sys.stdout.write('.')
 					sys.stdout.flush()
 			except Exception as e:
@@ -266,6 +280,10 @@ class sense_filter:
 		self.blacklist = []
 		'''
 		self.blacklist += [120000000.0]
+		self.blacklist += [126450000.0]			
+		self.blacklist += [126475000.0]		
+		self.blacklist += [126525000.0]			
+		self.blacklist += [126550000.0]			
 		self.blacklist += [126600000.0]
 		self.blacklist += [131525000.0]
 		self.blacklist += [131725000.0]
@@ -282,6 +300,8 @@ class sense_filter:
 		self.blacklist += [138000000.0]	
 		
 		self.blacklist += [230000000.0]
+		self.blacklist += [237450000.0]		
+		self.blacklist += [237475000.0]		
 		self.blacklist += [240000000.0]
 		self.blacklist += [249950000.0]		
 		self.blacklist += [250000000.0]
@@ -298,6 +318,7 @@ class sense_filter:
 		self.blacklist += [288025000.0]
 		self.blacklist += [294000000.0]
 		self.blacklist += [295100000.0]				
+		self.blacklist += [297000000.0]
 
 		self.blacklist += [300000000.0]														
 		self.blacklist += [312000000.0]		
@@ -311,10 +332,12 @@ class sense_filter:
 		self.blacklist += [350000000.0]		
 		self.blacklist += [360000000.0]	
 		self.blacklist += [372000000.0]		
+		self.blacklist += [372475000.0]			
+		self.blacklist += [372525000.0]		
 		self.blacklist += [379875000.0]
 		self.blacklist += [392850000.0]
 		self.blacklist += [392875000.0]
-		'''
+		#'''
 		
 	def add(self, freq):
 		self.blacklist += freq

@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+
+
+# This file is part of OnSense.
+#
+# OnSense is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# OnSense is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with OnSense.  If not, see <http://www.gnu.org/licenses/>.
+#
+# Copyright 2013 Darren Long, G0HWW. darren.long@mac.com
+
+
+
+if [ "$1" == "milair"  ]
+then
+	./onsense.py -m 2 -d localhost:4534 -o 19200 \
+				 -a uhd,lo_offset=10e6 --real-time -s 8000000  -g 40 \
+				 --tune-delay=0.02 --dwell-delay=0.02 \
+				 -b 25e3 -q 20 -c 0 230e6 370e6
+elif [ "$1" == "civair" ]
+then 
+	./onsense.py -m 2 -d localhost:4534  -o 19200 \
+				 -a uhd,lo_offset=10e6 --real-time -s 8000000 -g 40 \
+				 --tune-delay=0.08 --dwell-delay=0.08 \
+				 -b 25e3 -q 15 -c 0 119e6 136.2e6
+else
+	echo "Fail!"
+fi
+	
