@@ -17,7 +17,7 @@ Onsense spits out a bunch of characters  as well as detection reports and perhap
         
   'x' ... a blacklisted frequency was supressed. The blacklist is currently hardcoded in "onsense.py"
         
-  '-' ... the power threshold for slave receiver tuning was reduced as some weaker signals are there to be listened to
+  '-' ... the power threshold for slave receiver tuning was reduced as some weaker signals may deserve attention
        
   '=' ... the power threshold for slave receiver tuning is the squelch threshold
         
